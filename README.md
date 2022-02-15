@@ -1,5 +1,5 @@
 # PRUEBA CON LA LIB DE ILI9340
-===
+
 
 [Link a la lib de nopnop2002](https://github.com/nopnop2002/esp-idf-ili9340).
 
