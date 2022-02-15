@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := ili9340
+PROJECT_NAME := display-ili9340
 
 include $(IDF_PATH)/make/project.mk
 

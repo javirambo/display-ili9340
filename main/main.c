@@ -8,7 +8,7 @@
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_vfs.h"
-#include "esp_spiffs.h"
+//#include "esp_spiffs.h"
 #include "esp_heap_caps.h"
 
 #include "ili9340.h"
@@ -23,8 +23,8 @@
 #define	INTERVAL		40
 #define WAIT	vTaskDelay(INTERVAL)
 
-static const char *TAG = "ILI9340";
-
+//static const char *TAG = "ILI9340";
+/*
 static void SPIFFS_Directory(char * path) {
 	DIR* dir = opendir(path);
 	assert(dir != NULL);
@@ -34,7 +34,7 @@ static void SPIFFS_Directory(char * path) {
 		ESP_LOGI(__FUNCTION__,"d_name=%s d_ino=%d d_type=%x", pe->d_name,pe->d_ino, pe->d_type);
 	}
 	closedir(dir);
-}
+}*/
 
 // You have to set these CONFIG value using menuconfig.
 #if 0
@@ -1439,24 +1439,24 @@ void ILI9341(void *pvParameters)
 		TouchTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT, 1000);
 #endif
 
-		char file[32];
+	/*	char file[32];
 		if (CONFIG_WIDTH >= CONFIG_HEIGHT) {
 			strcpy(file, "/spiffs/esp32.bmp");
 		} else {
 			strcpy(file, "/spiffs/esp32_ro.bmp");
 		}
 		BMPTest(&dev, file, CONFIG_WIDTH, CONFIG_HEIGHT);
-		WAIT;
+		WAIT;*/
 
 #ifndef CONFIG_IDF_TARGET_ESP32S2
-		strcpy(file, "/spiffs/esp32.jpeg");
+		/*strcpy(file, "/spiffs/esp32.jpeg");
 		JPEGTest(&dev, file, CONFIG_WIDTH, CONFIG_HEIGHT);
-		WAIT;
+		WAIT;*/
 #endif
 
-		strcpy(file, "/spiffs/esp_logo.png");
+		/*strcpy(file, "/spiffs/esp_logo.png");
 		PNGTest(&dev, file, CONFIG_WIDTH, CONFIG_HEIGHT);
-		WAIT;
+		WAIT;*//*
 
 		ScrollTest(&dev, fx16G, CONFIG_WIDTH, CONFIG_HEIGHT);
 		WAIT;
@@ -1514,7 +1514,7 @@ void ILI9341(void *pvParameters)
 			lcdDrawString(&dev, fx32M, xpos, ypos, ascii, color);
 		}
 		lcdSetFontDirection(&dev, 0);
-		WAIT;
+		WAIT;*/
 
 	} // end while
 
@@ -1527,7 +1527,7 @@ void ILI9341(void *pvParameters)
 
 void app_main(void)
 {
-	ESP_LOGI(TAG, "Initializing SPIFFS");
+	/*ESP_LOGI(TAG, "Initializing SPIFFS");
 
 	esp_vfs_spiffs_conf_t conf = {
 		.base_path = "/spiffs",
@@ -1559,6 +1559,6 @@ void app_main(void)
 		ESP_LOGI(TAG,"Partition size: total: %d, used: %d", total, used);
 	}
 
-	SPIFFS_Directory("/spiffs/");
+	SPIFFS_Directory("/spiffs/");*/
 	xTaskCreate(ILI9341, "ILI9341", 1024*6, NULL, 2, NULL);
 }
