@@ -11,6 +11,10 @@ Para poder compilar tuve que usar la consola y *idf.py menuconfig & idf.py flash
 * No usa MISO
 * Para que no se inverta la imagen usar ancho 240 y alto 320
 
+
+
+-- Funciona bien. Falta proban un poco mas.....
+
 Javier.
 
 ## Doc original:
