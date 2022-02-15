@@ -1,0 +1,8 @@
+.pio/
+.vscode/
+.history/
+*.o
+*.a
+*.code-workspace
+/build/
+/esp_idf_components/
