@@ -762,82 +762,79 @@ void ILI9341(void *pvParameters)
 
 	while (1)
 	{
-		/*
-		 FillTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
 
-		 ColorBarTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		FillTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 ArrowTest(&dev, fx16G, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		ColorBarTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 LineTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		ArrowTest(&dev, fx16G, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 CircleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		LineTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 RoundRectTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		CircleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 RectAngleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		RoundRectTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 TriangleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
-		 */
+		RectAngleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		/*DirectionTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		TriangleTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 HorizontalTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		DirectionTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 VerticalTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;*/
+		HorizontalTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		/*
-		 FillRectTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		VerticalTest(&dev, fx24G, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 ColorTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
-		 */
+		FillRectTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		/*CodeTest(&dev, fx32G, CONFIG_WIDTH, CONFIG_HEIGHT, 0x00, 0x7f);
-		 WAIT;
+		ColorTest(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 CodeTest(&dev, fx32G, CONFIG_WIDTH, CONFIG_HEIGHT, 0x80, 0xff);
-		 WAIT;
+		CodeTest(&dev, fx32G, CONFIG_WIDTH, CONFIG_HEIGHT, 0x00, 0x7f);
+		WAIT;
 
-		 CodeTest(&dev, fx32L, CONFIG_WIDTH, CONFIG_HEIGHT, 0x80, 0xff);
-		 WAIT;*/
+		CodeTest(&dev, fx32G, CONFIG_WIDTH, CONFIG_HEIGHT, 0x80, 0xff);
+		WAIT;
 
+		CodeTest(&dev, fx32L, CONFIG_WIDTH, CONFIG_HEIGHT, 0x80, 0xff);
+		WAIT;
 
-		 BMPTest(&dev, "/spiffs/esp32_ro.bmp", CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		BMPTest(&dev, "/spiffs/esp32_ro.bmp", CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 JPEGTest(&dev, "/spiffs/esp32.jpeg", CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		JPEGTest(&dev, "/spiffs/esp32.jpeg", CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
-		 PNGTest(&dev, "/spiffs/esp_logo.png", CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
+		PNGTest(&dev, "/spiffs/esp_logo.png", CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
 
+		ScrollTest(&dev, fx16G, CONFIG_WIDTH, CONFIG_HEIGHT);
+		WAIT;
+		ScrollReset(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
 
-		/*
-		 ScrollTest(&dev, fx16G, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 WAIT;
-		 ScrollReset(&dev, CONFIG_WIDTH, CONFIG_HEIGHT);
-		 */
-
+		//------------------------------------------------------------------------------
+		// OJO con esto: los x / y estan para el orto porque el display lo toma invertido
+		// TODO hacer un wrapper para que use el print de forma mas "normal"
 		lcdFillScreen(&dev, RED);
 		lcdSetFontDirection(&dev, 1);
-		lcdDrawString(&dev, fx32L, 200, 0,(uint8_t*) "1", YELLOW);
-		lcdDrawString(&dev, fx32L, 0, 0,(uint8_t*) "2", YELLOW);
-		lcdDrawString(&dev, fx32L, 220, CONFIG_WIDTH,(uint8_t*) "3", YELLOW);
-		lcdDrawString(&dev, fx32L, 0, CONFIG_WIDTH,(uint8_t*) "4", YELLOW);
-		lcdDrawString(&dev, fx32L, 0, 300,(uint8_t*) "5", YELLOW);
+		lcdDrawString(&dev, fx32L, 200, 0, (uint8_t*) "1", YELLOW);
+		lcdDrawString(&dev, fx32L, 0, 0, (uint8_t*) "2", YELLOW);
+		lcdDrawString(&dev, fx32L, 220, CONFIG_WIDTH, (uint8_t*) "3", YELLOW);
+		lcdDrawString(&dev, fx32L, 0, CONFIG_WIDTH, (uint8_t*) "4", YELLOW);
+		lcdDrawString(&dev, fx32L, 0, 300, (uint8_t*) "5", YELLOW);
+		//------------------------------------------------------------------------------
 
 		ESP_LOGI(TAG, "font fx32G");
 
@@ -851,73 +848,70 @@ void ILI9341(void *pvParameters)
 		GetFontx(fx32G, 0, buffer, &fontWidth, &fontHeight);
 
 		lcdSetFontFill(&dev, GREEN);
-		lcdDrawString(&dev, fx32G, 0, fontHeight * 3 - 1, (uint8_t*)"ascii", RED);
+		lcdDrawString(&dev, fx32G, 0, fontHeight * 3 - 1, (uint8_t*) "ascii", RED);
 		lcdSetFontUnderLine(&dev, RED);
-		lcdDrawString(&dev, fx32G, 0, fontHeight * 4 - 1,(uint8_t*) "ascii", WHITE);
+		lcdDrawString(&dev, fx32G, 0, fontHeight * 4 - 1, (uint8_t*) "ascii", WHITE);
 		lcdUnsetFontFill(&dev);
 		lcdUnsetFontUnderLine(&dev);
 
 		WAIT;
 
+		// Multi Font Test
+		uint16_t color;
+		uint8_t ascii[40];
+		uint16_t margin = 10;
+		lcdFillScreen(&dev, BLACK);
+		color = WHITE;
+		lcdSetFontDirection(&dev, 0);
+		uint16_t xpos = 0;
+		uint16_t ypos = 15;
+		int xd = 0;
+		int yd = 1;
+		if (CONFIG_WIDTH < CONFIG_HEIGHT)
+		{
+			lcdSetFontDirection(&dev, 1);
+			xpos = (CONFIG_WIDTH - 1) - 16;
+			ypos = 0;
+			xd = 1;
+			yd = 0;
+		}
+		strcpy((char*) ascii, "16Dot Gothic Font");
+		lcdDrawString(&dev, fx16G, xpos, ypos, ascii, color);
 
-		 // Multi Font Test
-		 uint16_t color;
-		 uint8_t ascii[40];
-		 uint16_t margin = 10;
-		 lcdFillScreen(&dev, BLACK);
-		 color = WHITE;
-		 lcdSetFontDirection(&dev, 0);
-		 uint16_t xpos = 0;
-		 uint16_t ypos = 15;
-		 int xd = 0;
-		 int yd = 1;
-		 if (CONFIG_WIDTH < CONFIG_HEIGHT)
-		 {
-		 lcdSetFontDirection(&dev, 1);
-		 xpos = (CONFIG_WIDTH - 1) - 16;
-		 ypos = 0;
-		 xd = 1;
-		 yd = 0;
-		 }
-		 strcpy((char*) ascii, "16Dot Gothic Font");
-		 lcdDrawString(&dev, fx16G, xpos, ypos, ascii, color);
+		xpos = xpos - (24 * xd) - (margin * xd);
+		ypos = ypos + (16 * yd) + (margin * yd);
+		strcpy((char*) ascii, "24Dot Gothic Font");
+		lcdDrawString(&dev, fx24G, xpos, ypos, ascii, color);
 
-		 xpos = xpos - (24 * xd) - (margin * xd);
-		 ypos = ypos + (16 * yd) + (margin * yd);
-		 strcpy((char*) ascii, "24Dot Gothic Font");
-		 lcdDrawString(&dev, fx24G, xpos, ypos, ascii, color);
+		xpos = xpos - (32 * xd) - (margin * xd);
+		ypos = ypos + (24 * yd) + (margin * yd);
+		if (CONFIG_WIDTH >= 240)
+		{
+			strcpy((char*) ascii, "32Dot Gothic Font");
+			lcdDrawString(&dev, fx32G, xpos, ypos, ascii, color);
+			xpos = xpos - (32 * xd) - (margin * xd);
+			ypos = ypos + (32 * yd) + (margin * yd);
+		}
 
-		 xpos = xpos - (32 * xd) - (margin * xd);
-		 ypos = ypos + (24 * yd) + (margin * yd);
-		 if (CONFIG_WIDTH >= 240)
-		 {
-		 strcpy((char*) ascii, "32Dot Gothic Font");
-		 lcdDrawString(&dev, fx32G, xpos, ypos, ascii, color);
-		 xpos = xpos - (32 * xd) - (margin * xd);
-		 ypos = ypos + (32 * yd) + (margin * yd);
-		 }
+		xpos = xpos - (10 * xd) - (margin * xd);
+		ypos = ypos + (10 * yd) + (margin * yd);
+		strcpy((char*) ascii, "16Dot Mincyo Font");
+		lcdDrawString(&dev, fx16M, xpos, ypos, ascii, color);
 
-		 xpos = xpos - (10 * xd) - (margin * xd);
-		 ypos = ypos + (10 * yd) + (margin * yd);
-		 strcpy((char*) ascii, "16Dot Mincyo Font");
-		 lcdDrawString(&dev, fx16M, xpos, ypos, ascii, color);
+		xpos = xpos - (24 * xd) - (margin * xd);
+		ypos = ypos + (16 * yd) + (margin * yd);
+		strcpy((char*) ascii, "24Dot Mincyo Font");
+		lcdDrawString(&dev, fx24M, xpos, ypos, ascii, color);
 
-		 xpos = xpos - (24 * xd) - (margin * xd);
-		 ypos = ypos + (16 * yd) + (margin * yd);
-		 strcpy((char*) ascii, "24Dot Mincyo Font");
-		 lcdDrawString(&dev, fx24M, xpos, ypos, ascii, color);
-
-		 if (CONFIG_WIDTH >= 240)
-		 {
-		 xpos = xpos - (32 * xd) - (margin * xd);
-		 ypos = ypos + (24 * yd) + (margin * yd);
-		 strcpy((char*) ascii, "32Dot Mincyo Font");
-		 lcdDrawString(&dev, fx32M, xpos, ypos, ascii, color);
-		 }
-		 lcdSetFontDirection(&dev, 0);
-		 WAIT;
-
-
+		if (CONFIG_WIDTH >= 240)
+		{
+			xpos = xpos - (32 * xd) - (margin * xd);
+			ypos = ypos + (24 * yd) + (margin * yd);
+			strcpy((char*) ascii, "32Dot Mincyo Font");
+			lcdDrawString(&dev, fx32M, xpos, ypos, ascii, color);
+		}
+		lcdSetFontDirection(&dev, 0);
+		WAIT;
 
 	} // end while
 
