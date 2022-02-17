@@ -834,27 +834,9 @@ void ILI9341(void *pvParameters)
 		lcdDrawString(&dev, fx32L, 220, CONFIG_WIDTH, (uint8_t*) "3", YELLOW);
 		lcdDrawString(&dev, fx32L, 0, CONFIG_WIDTH, (uint8_t*) "4", YELLOW);
 		lcdDrawString(&dev, fx32L, 0, 300, (uint8_t*) "5", YELLOW);
+		ESP_LOGI(TAG, "test print letras en distintas posiciones");
+		WAIT;
 		//------------------------------------------------------------------------------
-
-		ESP_LOGI(TAG, "font fx32G");
-
-		WAIT;
-
-		ESP_LOGI(TAG, "font otro");
-
-		uint8_t buffer[FontxGlyphBufSize];
-		uint8_t fontWidth;
-		uint8_t fontHeight;
-		GetFontx(fx32G, 0, buffer, &fontWidth, &fontHeight);
-
-		lcdSetFontFill(&dev, GREEN);
-		lcdDrawString(&dev, fx32G, 0, fontHeight * 3 - 1, (uint8_t*) "ascii", RED);
-		lcdSetFontUnderLine(&dev, RED);
-		lcdDrawString(&dev, fx32G, 0, fontHeight * 4 - 1, (uint8_t*) "ascii", WHITE);
-		lcdUnsetFontFill(&dev);
-		lcdUnsetFontUnderLine(&dev);
-
-		WAIT;
 
 		// Multi Font Test
 		uint16_t color;
@@ -885,13 +867,12 @@ void ILI9341(void *pvParameters)
 
 		xpos = xpos - (32 * xd) - (margin * xd);
 		ypos = ypos + (24 * yd) + (margin * yd);
-		if (CONFIG_WIDTH >= 240)
-		{
-			strcpy((char*) ascii, "32Dot Gothic Font");
-			lcdDrawString(&dev, fx32G, xpos, ypos, ascii, color);
-			xpos = xpos - (32 * xd) - (margin * xd);
-			ypos = ypos + (32 * yd) + (margin * yd);
-		}
+		strcpy((char*) ascii, "32Dot Gothic Font");
+		lcdDrawString(&dev, fx32G, xpos, ypos, ascii, color);
+		xpos = xpos - (32 * xd) - (margin * xd);
+		ypos = ypos + (32 * yd) + (margin * yd);
+		strcpy((char*) ascii, "Latin32B 0123456");
+		lcdDrawString(&dev, fx32L, xpos, ypos, ascii, color);
 
 		xpos = xpos - (10 * xd) - (margin * xd);
 		ypos = ypos + (10 * yd) + (margin * yd);
