@@ -15,7 +15,7 @@ typedef struct {
 	FILE *file;
 } FontxFile;
 
-void AaddFontx(FontxFile *fx, const char *path);
+void AddFontx(FontxFile *fx, const char *path);
 void InitFontx(FontxFile *fxs, const char *f0, const char *f1);
 bool OpenFontx(FontxFile *fx);
 void CloseFontx(FontxFile *fx);
