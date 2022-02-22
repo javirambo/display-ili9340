@@ -86,12 +86,12 @@ void ILI9341(void *pvParameters)
 void app_main(void)
 {
 	// nombre del FS y cantidad max de archivos:
-	lcd_init_spiffs("spiffs", 16); 	// solo si uso los recursos
+	lcdInitFS("spiffs", 16); 	// solo si uso los recursos
 
 	// guardar los indices para luego setear las diferentes fonts a usar:
-	lcd_init_fonts(2, "LATIN32B.FNT", "ILGH24XB.FNT");	// solo si uso las fonts
+	lcdInitFonts(2, "LATIN32B.FNT", "ILGH24XB.FNT");	// solo si uso las fonts
 
-	lcd_init_display();	// siempre y solo para ILI9341
+	lcdInitDisplay();	// siempre y solo para ILI9341
 
 	xTaskCreate(ILI9341, "ILI9341", 1024 * 6, NULL, 2, NULL);
 }
