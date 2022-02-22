@@ -1,63 +1,18 @@
-menu "TFT Configuration"
-
-	choice DRIVER
-		prompt "Display Driver"
-		default ILI9341
-		help
-			Select Display Driver.
-		config ILI9225
-			bool "ILI9225"
-			help
-				Display Driver is ILI9225.
-		config ILI9225G
-			bool "ILI9225G"
-			help
-				Display Driver is ILI9225G.
-		config ILI9340
-			bool "ILI9340"
-			help
-				Display Driver is ILI9340.
-		config ILI9341
-			bool "ILI9341"
-			help
-				Display Driver is ILI9341.
-		config ST7735
-			bool "ST7735"
-			help
-				Display Driver is ST7735.
-		config ST7796
-			bool "ST7796"
-			help
-				Display Driver is ST7796S.
-	endchoice
+menu "TFT ILI9341 Configuration"
 
 	config WIDTH
 		int "SCREEN WIDTH"
 		range 0 999
-		default 320
+		default 240
 		help
 			The width resolution of the screen.
 
 	config HEIGHT
 		int "SCREEN HEIGHT"
 		range 0 999
-		default 240
+		default 320
 		help
 			The height resolution of the screen.
-
-	config OFFSETX
-		int "GRAM X OFFSET"
-		range 0 99
-		default 0
-		help
-			When your TFT have offset(X), set it.
-
-	config OFFSETY
-		int "GRAM Y OFFSET"
-		range 0 99
-		default 0
-		help
-			When your TFT have offset(Y), set it.
 
 	config MOSI_GPIO
 		int "MOSI GPIO number"
@@ -70,6 +25,16 @@ menu "TFT Configuration"
 			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to MOSI.
 			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
 			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config MISO_GPIO
+		int "MISO GPIO number"
+		range -1 46
+		default 19 if IDF_TARGET_ESP32
+		default 33 if IDF_TARGET_ESP32S2
+		default 3  if IDF_TARGET_ESP32C3
+		help
+			GPIO number (IOxx) to SPI MISO (-1 si no queres usar comandos READ).
+			Si usas el XPT2046 hay que usar el MISO!			
 
 	config SCLK_GPIO
 		int "SCLK GPIO number"
@@ -86,7 +51,7 @@ menu "TFT Configuration"
 	config TFT_CS_GPIO
 		int "CS GPIO number"
 		range 0 46
-		default 14 if IDF_TARGET_ESP32
+		default 26 if IDF_TARGET_ESP32
 		default 34 if IDF_TARGET_ESP32S2
 		default 9  if IDF_TARGET_ESP32C3
 		help
@@ -98,7 +63,7 @@ menu "TFT Configuration"
 	config DC_GPIO
 		int "DC GPIO number"
 		range 0 46
-		default 27 if IDF_TARGET_ESP32
+		default 4 if IDF_TARGET_ESP32
 		default 37 if IDF_TARGET_ESP32S2
 		default 10 if IDF_TARGET_ESP32C3
 		help
@@ -110,7 +75,7 @@ menu "TFT Configuration"
 	config RESET_GPIO
 		int "RESET GPIO number"
 		range -1 46
-		default 33 if IDF_TARGET_ESP32
+		default -1 if IDF_TARGET_ESP32
 		default 38 if IDF_TARGET_ESP32S2
 		default 1  if IDF_TARGET_ESP32C3
 		help
@@ -123,7 +88,7 @@ menu "TFT Configuration"
 	config BL_GPIO
 		int "BACKLIGHT GPIO number"
 		range -1 46
-		default 32 if IDF_TARGET_ESP32
+		default -1 if IDF_TARGET_ESP32
 		default 39 if IDF_TARGET_ESP32S2
 		default 2  if IDF_TARGET_ESP32C3
 		help
@@ -134,10 +99,16 @@ menu "TFT Configuration"
 			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
 
 	config INVERSION
-		bool "Enable Display Inversion"
+		bool "Enable Display (color) Inversion"
 		default false
 		help
-			Enable Display Inversion.
+			Enable Display (color) Inversion.
+
+	config ROTATE_SCREEN
+		bool "Gira la pantalla 90 grados, para usarla vertical"
+		default false
+		help
+			Esta es la opcion que vino por defecto, pero yo la cambie para que sea apaisada.
 
 	config RGB_COLOR
 		bool "Change BGR filter to RGB filter"
@@ -149,18 +120,7 @@ menu "TFT Configuration"
 		bool "Enable XPT2046 Touch Contoller"
 		default false
 		help
-			Enable XPT2046 Touch Contolle.
-
-	config MISO_GPIO
-		depends on XPT2046
-		int "MISO GPIO number"
-		range 0 46
-		default 19 if IDF_TARGET_ESP32
-		default 33 if IDF_TARGET_ESP32S2
-		default 3  if IDF_TARGET_ESP32C3
-		help
-			GPIO number (IOxx) to SPI MISO.
-			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to MISO.
+			Enable XPT2046 Touch Contoller.
 
 	config XPT_CS_GPIO
 		depends on XPT2046

@@ -6,8 +6,8 @@
 
 void png_init(pngle_t *pngle, uint32_t w, uint32_t h)
 {
-	ESP_LOGD(__FUNCTION__, "png_init w=%d h=%d", w, h);
-	ESP_LOGD(__FUNCTION__, "screenWidth=%d screenHeight=%d", pngle->screenWidth, pngle->screenHeight);
+	//ESP_LOGD(__FUNCTION__, "png_init w=%d h=%d", w, h);
+	//ESP_LOGD(__FUNCTION__, "screenWidth=%d screenHeight=%d", pngle->screenWidth, pngle->screenHeight);
 	pngle->imageWidth = w;
 	pngle->imageHeight = h;
 	pngle->reduction = false;
@@ -25,8 +25,8 @@ void png_init(pngle_t *pngle, uint32_t w, uint32_t h)
 		pngle->imageWidth = pngle->imageWidth * pngle->scale_factor;
 		pngle->imageHeight = pngle->imageHeight * pngle->scale_factor;
 	}
-	ESP_LOGD(__FUNCTION__, "reduction=%d scale_factor=%f", pngle->reduction, pngle->scale_factor);
-	ESP_LOGD(__FUNCTION__, "imageWidth=%d imageHeight=%d", pngle->imageWidth, pngle->imageHeight);
+	//ESP_LOGD(__FUNCTION__, "reduction=%d scale_factor=%f", pngle->reduction, pngle->scale_factor);
+	//ESP_LOGD(__FUNCTION__, "imageWidth=%d imageHeight=%d", pngle->imageWidth, pngle->imageHeight);
 
 }
 
@@ -34,7 +34,7 @@ void png_init(pngle_t *pngle, uint32_t w, uint32_t h)
 
 void png_draw(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4])
 {
-	ESP_LOGD(__FUNCTION__, "png_draw x=%d y=%d w=%d h=%d", x, y, w, h);
+	//ESP_LOGD(__FUNCTION__, "png_draw x=%d y=%d w=%d h=%d", x, y, w, h);
 #if 0
 	uint8_t r = rgba[0];
 	uint8_t g = rgba[1];
@@ -63,14 +63,11 @@ void png_draw(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, ui
 
 void png_finish(pngle_t *pngle)
 {
-	ESP_LOGD(__FUNCTION__, "png_finish");
+	//ESP_LOGD(__FUNCTION__, "png_finish");
 }
 
-int load_png(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_height)
+int load_png(int _x, int _y, char *file, int scr_width, int scr_height)
 {
-	lcdSetFontDirection(dev, 0);
-	lcdFillScreen(dev, BLACK);
-
 	// open PNG file
 	FILE *fp = fopen(file, "rb");
 	if (fp == NULL)
@@ -125,7 +122,7 @@ int load_png(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 		pngWidth = pngle->imageWidth;
 		offsetX = (scr_width - pngle->imageWidth) / 2;
 	}
-	ESP_LOGD(__FUNCTION__, "pngWidth=%d offsetX=%d", pngWidth, offsetX);
+	//ESP_LOGD(__FUNCTION__, "pngWidth=%d offsetX=%d", pngWidth, offsetX);
 
 	uint16_t pngHeight = scr_height;
 	uint16_t offsetY = 0;
@@ -134,7 +131,7 @@ int load_png(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 		pngHeight = pngle->imageHeight;
 		offsetY = (scr_height - pngle->imageHeight) / 2;
 	}
-	ESP_LOGD(__FUNCTION__, "pngHeight=%d offsetY=%d", pngHeight, offsetY);
+	//ESP_LOGD(__FUNCTION__, "pngHeight=%d offsetY=%d", pngHeight, offsetY);
 	uint16_t *colors = (uint16_t*) malloc(sizeof(uint16_t) * pngWidth);
 
 #if 0
@@ -155,7 +152,7 @@ int load_png(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 			//colors[x] = rgb565_conv(pixel.red, pixel.green, pixel.blue);
 			colors[x] = pngle->pixels[y][x];
 		}
-		lcdDrawMultiPixels(dev, offsetX, y + offsetY, pngWidth, colors);
+		lcdDrawMultiPixels(offsetX, y + offsetY, pngWidth, colors);
 		//vTaskDelay(1);
 	}
 	free(colors);

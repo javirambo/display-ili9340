@@ -1,7 +1,7 @@
 #ifndef __bmpfile_h__
 #define __bmpfile_h__
 
-#include "ili9340.h"
+#include "ili9341.h"
 
 typedef struct
 {
@@ -53,6 +53,6 @@ typedef struct
 	bmp_dib_v3_header_t dib;
 } bmpfile_t;
 
-int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_height);
+int load_bmp(int _x, int _y, char *file, int scr_width, int scr_height);
 
 #endif /* __bmpfile_h__ */

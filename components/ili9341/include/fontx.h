@@ -1,28 +1,29 @@
 #ifndef MAIN_FONTX_H_
 #define MAIN_FONTX_H_
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
+#include <stdbool.h>
+
 #define FontxGlyphBufSize (32*32/8)
 
-typedef struct {
-	const char *path;
-	char  fxname[10];
-	bool  opened;
-	bool  valid;
-	bool  is_ank;
-	uint8_t w;
-	uint8_t h;
-	uint16_t fsz;
-	uint8_t bc;
-	FILE *file;
+typedef struct
+{
+	char *path;			// guardado el nombre del archivo (real del FS) cuando se inicializaron las fonts
+	bool opened; 		// para no volver a abrir el archivo
+	uint8_t width; 		// ancho y alto de la font
+	uint8_t height;
+	uint16_t fsz;		// tamaño de cada letra
+	FILE *file; 		// archivo abierto (queda abierto!)
+	uint8_t *bmpFont; 	// buffer con el bitmap del font seleccionado (lo usa GetFontx)
 } FontxFile;
 
-void AddFontx(FontxFile *fx, const char *path);
-void InitFontx(FontxFile *fxs, const char *f0, const char *f1);
+void InitFontx(FontxFile *fx, char *root, char *fontName);
 bool OpenFontx(FontxFile *fx);
 void CloseFontx(FontxFile *fx);
-void DumpFontx(FontxFile *fxs);
-uint8_t getFortWidth(FontxFile *fx);
-uint8_t getFortHeight(FontxFile *fx);
-bool GetFontx(FontxFile *fxs, uint8_t ascii , uint8_t *pGlyph, uint8_t *pw, uint8_t *ph);
+FontxFile* GetFontx(FontxFile *fxs, char ascii, uint8_t *pw, uint8_t *ph);
 void Font2Bitmap(uint8_t *fonts, uint8_t *line, uint8_t w, uint8_t h, uint8_t inverse);
 void UnderlineBitmap(uint8_t *line, uint8_t w, uint8_t h);
 void ReversBitmap(uint8_t *line, uint8_t w, uint8_t h);
@@ -30,10 +31,5 @@ void ShowFont(uint8_t *fonts, uint8_t pw, uint8_t ph);
 void ShowBitmap(uint8_t *bitmap, uint8_t pw, uint8_t ph);
 uint8_t RotateByte(uint8_t ch);
 
-// UTF8 to SJIS table
-// https://www.mgo-tec.com/blog-entry-utf8sjis01.html
-//#define Utf8Sjis "Utf8Sjis.tbl"
-//uint16_t UTF2SJIS(spiffs_file fd, uint8_t *utf8);
-//int String2SJIS(spiffs_file fd, unsigned char *str_in, size_t stlen, uint16_t *sjis, size_t ssize);
 #endif /* MAIN_FONTX_H_ */
 

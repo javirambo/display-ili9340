@@ -16,16 +16,16 @@ typedef struct
 static UINT infunc(JDEC *decoder, BYTE *buf, UINT len)
 {
 	JpegDev *jd = (JpegDev*) decoder->device;
-	ESP_LOGD(__FUNCTION__, "infunc len=%d fp=%p", len, jd->fp);
+	//ESP_LOGD(__FUNCTION__, "infunc len=%d fp=%p", len, jd->fp);
 	int rlen;
 	if (buf != NULL)
 	{ /* Read nd bytes from the input strem */
 		rlen = fread(buf, 1, len, jd->fp);
-		ESP_LOGD(__FUNCTION__, "rlen=%d", rlen);
+		//ESP_LOGD(__FUNCTION__, "rlen=%d", rlen);
 	}
 	else
 	{ /* Skip nd bytes on the input stream */
-		ESP_LOGD(__FUNCTION__, "buff is NULL");
+		//ESP_LOGD(__FUNCTION__, "buff is NULL");
 		fseek(jd->fp, len, SEEK_CUR);
 		rlen = len;
 	}
@@ -40,9 +40,9 @@ static UINT outfunc(JDEC *decoder, void *bitmap, JRECT *rect)
 {
 	JpegDev *jd = (JpegDev*) decoder->device;
 	uint8_t *in = (uint8_t*) bitmap;
-	ESP_LOGD(__FUNCTION__, "rect->top=%d rect->bottom=%d", rect->top, rect->bottom);
-	ESP_LOGD(__FUNCTION__, "rect->left=%d rect->right=%d", rect->left, rect->right);
-	ESP_LOGD(__FUNCTION__, "jd->screenWidth=%d jd->screenHeight=%d", jd->screenWidth, jd->screenHeight);
+	//ESP_LOGD(__FUNCTION__, "rect->top=%d rect->bottom=%d", rect->top, rect->bottom);
+	//ESP_LOGD(__FUNCTION__, "rect->left=%d rect->right=%d", rect->left, rect->right);
+	//ESP_LOGD(__FUNCTION__, "jd->screenWidth=%d jd->screenHeight=%d", jd->screenWidth, jd->screenHeight);
 
 	for (int y = rect->top; y <= rect->bottom; y++)
 	{
@@ -74,11 +74,11 @@ uint8_t getScale(uint16_t screenWidth, uint16_t screenHeight, uint16_t imageWidt
 
 	double scaleWidth = (double) imageWidth / (double) screenWidth;
 	double scaleHeight = (double) imageHeight / (double) screenHeight;
-	ESP_LOGD(__FUNCTION__, "scaleWidth=%f scaleHeight=%f", scaleWidth, scaleHeight);
+	//ESP_LOGD(__FUNCTION__, "scaleWidth=%f scaleHeight=%f", scaleWidth, scaleHeight);
 	double scale = scaleWidth;
 	if (scaleWidth < scaleHeight)
 		scale = scaleHeight;
-	ESP_LOGD(__FUNCTION__, "scale=%f", scale);
+	//ESP_LOGD(__FUNCTION__, "scale=%f", scale);
 	if (scale <= 2.0)
 		return 1;
 	if (scale <= 4.0)
@@ -139,7 +139,7 @@ esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t
 		ret = ESP_ERR_NOT_FOUND;
 		goto err;
 	}
-	ESP_LOGD(__FUNCTION__, "jd.fp=%p", jd.fp);
+	//ESP_LOGD(__FUNCTION__, "jd.fp=%p", jd.fp);
 
 	//Prepare and decode the jpeg.
 	r = jd_prepare(&decoder, infunc, work, WORKSZ, (void*) &jd);
@@ -149,11 +149,11 @@ esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t
 		ret = ESP_ERR_NOT_SUPPORTED;
 		goto err;
 	}
-	ESP_LOGD(__FUNCTION__, "decoder.width=%d decoder.height=%d", decoder.width, decoder.height);
+	//ESP_LOGD(__FUNCTION__, "decoder.width=%d decoder.height=%d", decoder.width, decoder.height);
 
 	//Calculate Scaling factor
 	uint8_t scale = getScale(width, height, decoder.width, decoder.height);
-	ESP_LOGD(__FUNCTION__, "scale=%d", scale);
+	//ESP_LOGD(__FUNCTION__, "scale=%d", scale);
 
 	//Calculate image size
 	double factor = 1.0;
@@ -163,10 +163,10 @@ esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t
 		factor = 0.25;
 	if (scale == 3)
 		factor = 0.125;
-	ESP_LOGD(__FUNCTION__, "factor=%f", factor);
+	//ESP_LOGD(__FUNCTION__, "factor=%f", factor);
 	*imageWidth = (double) decoder.width * factor;
 	*imageHeight = (double) decoder.height * factor;
-	ESP_LOGD(__FUNCTION__, "imageWidth=%d imageHeight=%d", *imageWidth, *imageHeight);
+	//ESP_LOGD(__FUNCTION__, "imageWidth=%d imageHeight=%d", *imageWidth, *imageHeight);
 
 	r = jd_decomp(&decoder, outfunc, scale);
 	if (r != JDR_OK)
@@ -209,11 +209,8 @@ esp_err_t release_image(pixel_jpeg ***pixels, uint16_t width, uint16_t height)
 	return ESP_OK;
 }
 
-int load_jpg(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_height)
+int load_jpg(int _x, int _y, char *file, int scr_width, int scr_height)
 {
-	lcdSetFontDirection(dev, 0);
-	lcdFillScreen(dev, BLACK);
-
 	pixel_jpeg **pixels;
 	uint16_t imageWidth;
 	uint16_t imageHeight;
@@ -223,22 +220,24 @@ int load_jpg(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 		ESP_LOGI(__FUNCTION__, "imageWidth=%d imageHeight=%d", imageWidth, imageHeight);
 
 		uint16_t jpegWidth = scr_width;
-		uint16_t offsetX = 0;
+		uint16_t offsetX = _x < 0 ? 0 : _x;
 		if (scr_width > imageWidth)
 		{
 			jpegWidth = imageWidth;
-			offsetX = (scr_width - imageWidth) / 2;
+			if (_x < 0) // centrado
+				offsetX = (scr_width - imageWidth) / 2;
 		}
-		ESP_LOGD(__FUNCTION__, "jpegWidth=%d offsetX=%d", jpegWidth, offsetX);
+		//ESP_LOGD(__FUNCTION__, "jpegWidth=%d offsetX=%d", jpegWidth, offsetX);
 
 		uint16_t jpegHeight = scr_height;
-		uint16_t offsetY = 0;
+		uint16_t offsetY = _y < 0 ? 0 : _y;
 		if (scr_height > imageHeight)
 		{
 			jpegHeight = imageHeight;
-			offsetY = (scr_height - imageHeight) / 2;
+			if (_y < 0) // centrado
+				offsetY = (scr_height - imageHeight) / 2;
 		}
-		ESP_LOGD(__FUNCTION__, "jpegHeight=%d offsetY=%d", jpegHeight, offsetY);
+		//ESP_LOGD(__FUNCTION__, "jpegHeight=%d offsetY=%d", jpegHeight, offsetY);
 		uint16_t *colors = (uint16_t*) malloc(sizeof(uint16_t) * jpegWidth);
 
 #if 0
@@ -260,13 +259,13 @@ int load_jpg(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 				//colors[x] = rgb565_conv(pixel.red, pixel.green, pixel.blue);
 				colors[x] = pixels[y][x];
 			}
-			lcdDrawMultiPixels(dev, offsetX, y + offsetY, jpegWidth, colors);
+			lcdDrawMultiPixels(offsetX, y + offsetY, jpegWidth, colors);
 			//vTaskDelay(1);
 		}
 
 		free(colors);
 		release_image(&pixels, scr_width, scr_height);
-		ESP_LOGD(__FUNCTION__, "Finish");
+		//ESP_LOGD(__FUNCTION__, "Finish");
 		return 1;
 	}
 	else

@@ -10,11 +10,8 @@
 
 #define BUFFPIXEL 20
 
-int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_height)
+int load_bmp(int _x, int _y, char *file, int scr_width, int scr_height)
 {
-	lcdSetFontDirection(dev, 0);
-	lcdFillScreen(dev, BLACK);
-
 	// open BMP file
 	esp_err_t ret;
 	FILE *fp = fopen(file, "rb");
@@ -28,7 +25,7 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 	bmpfile_t *result = (bmpfile_t*) malloc(sizeof(bmpfile_t));
 	ret = fread(result->header.magic, 1, 2, fp);
 	assert(ret == 2);
-	ESP_LOGD(__FUNCTION__, "result->header.magic=%c %c", result->header.magic[0], result->header.magic[1]);
+	//ESP_LOGD(__FUNCTION__, "result->header.magic=%c %c", result->header.magic[0], result->header.magic[1]);
 	if (result->header.magic[0] != 'B' || result->header.magic[1] != 'M')
 	{
 		ESP_LOGW(__FUNCTION__, "File is not BMP");
@@ -38,7 +35,7 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 	}
 	ret = fread(&result->header.filesz, 4, 1, fp);
 	assert(ret == 1);
-	ESP_LOGD(__FUNCTION__, "result->header.filesz=%d", result->header.filesz);
+	//ESP_LOGD(__FUNCTION__, "result->header.filesz=%d", result->header.filesz);
 	ret = fread(&result->header.creator1, 2, 1, fp);
 	assert(ret == 1);
 	ret = fread(&result->header.creator2, 2, 1, fp);
@@ -76,7 +73,7 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 		uint32_t rowSize = (result->dib.width * 3 + 3) & ~3;
 		int w = result->dib.width;
 		int h = result->dib.height;
-		ESP_LOGD(__FUNCTION__, "w=%d h=%d", w, h);
+		//ESP_LOGD(__FUNCTION__, "w=%d h=%d", w, h);
 		//int _x;
 		int _w;
 		int _cols;
@@ -95,7 +92,7 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 			_cols = (w - scr_width) / 2;
 			_cole = _cols + scr_width - 1;
 		}
-		ESP_LOGD(__FUNCTION__, "_x=%d _w=%d _cols=%d _cole=%d", _x, _w, _cols, _cole);
+		//ESP_LOGD(__FUNCTION__, "_x=%d _w=%d _cols=%d _cole=%d", _x, _w, _cols, _cole);
 
 		//int _y;
 		int _rows;
@@ -112,7 +109,7 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 			_rows = (h - scr_height) / 2;
 			_rowe = _rows + scr_height - 1;
 		}
-		ESP_LOGD(__FUNCTION__, "_y=%d _rows=%d _rowe=%d", _y, _rows, _rowe);
+		//ESP_LOGD(__FUNCTION__, "_y=%d _rows=%d _rowe=%d", _y, _rows, _rowe);
 
 		uint8_t sdbuffer[3 * BUFFPIXEL]; // pixel buffer (R+G+B per pixel)
 		uint16_t *colors = (uint16_t*) malloc(sizeof(uint16_t) * w);
@@ -146,11 +143,11 @@ int load_bmp(TFT_t *dev, int _x, int _y, char *file, int scr_width, int scr_heig
 				uint8_t b = sdbuffer[buffidx++];
 				uint8_t g = sdbuffer[buffidx++];
 				uint8_t r = sdbuffer[buffidx++];
-				colors[index++] = rgb565_conv(r, g, b);
+				colors[index++] = rgb565(r, g, b);
 			} // end for col
-			ESP_LOGD(__FUNCTION__, "lcdDrawMultiPixels row=%d", row);
-			//lcdDrawMultiPixels(dev, _x, row+_y, _w, colors);
-			lcdDrawMultiPixels(dev, _x, _y, _w, colors);
+			  //ESP_LOGD(__FUNCTION__, "lcdDrawMultiPixels row=%d", row);
+			  //lcdDrawMultiPixels(dev, _x, row+_y, _w, colors);
+			lcdDrawMultiPixels(_x, _y, _w, colors);
 			_y++;
 		} // end for row
 		free(colors);

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../components/ili9341/include/ili9341.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
@@ -11,7 +12,6 @@
 #include "esp_spiffs.h"
 #include "esp_heap_caps.h"
 
-#include "ili9340.h"
 #include "fontx.h"
 #include "bmpfile.h"
 #include "decode_jpeg.h"
