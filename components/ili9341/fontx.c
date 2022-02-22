@@ -3,7 +3,7 @@
 
 #include "fontx.h"
 
-static const char *TAG = "fontx";
+//static const char *TAG = "fontx";
 
 void InitFontx(FontxFile *fx, char *root, char *fontName)
 {

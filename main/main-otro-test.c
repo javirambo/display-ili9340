@@ -6,11 +6,7 @@
 #include "freertos/task.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "esp_system.h"
-#include "esp_heap_caps.h"
-#include "driver/gpio.h"
 #include "ili9341.h"
-#include "esp_spiffs.h"
 
 #define	INTERVAL		140
 #define WAIT	vTaskDelay(INTERVAL)
@@ -36,20 +32,28 @@ TickType_t HorizontalTest()
 	lcdSetFontEx(LATIN32B, &fx);
 	lcdSetFontColor(RED);
 
-	ESP_LOGE(TAG, "font %s....", fx.path);
-	ESP_LOGE(TAG, "....%d x %d", fx.height, fx.width);
+	int y = 0;
+	y += fx.height;
+	int x = lcdDrawString(0, y, "linea numero 1");
+	lcdDrawString(x, y, "..."); // x queda apuntando al sig char
+	y += fx.height;
+	lcdDrawString(0, y, "linea numero 2");
+	y += fx.height;
+	lcdDrawString(0, y, "linea numero 3");
+	y += fx.height;
+	lcdDrawString(0, y, "linea numero 4");
 
-	lcdPrintf(0, fx.height - 1, "%s", "X123");
-	lcdSetFontUnderLine(RED);
-	lcdPrintf(0, fx.height * 2 - 1, "%s", ascii);
-	lcdUnsetFontUnderLine();
+	/*lcdPrintf(0, fx.height - 1, "%s", "X123");
+	 lcdSetFontUnderLine(RED);
+	 lcdPrintf(0, fx.height * 2 - 1, "%s", ascii);
+	 lcdUnsetFontUnderLine();
 
-	lcdSetFontFill( GREEN);
-	lcdPrintf(0, fx.height * 3 - 1, "%s", ascii);
-	lcdSetFontUnderLine( RED);
-	lcdPrintf(0, fx.height * 4 - 1, "%s", ascii);
-	lcdUnsetFontFill();
-	lcdUnsetFontUnderLine();
+	 lcdSetFontFill( GREEN);
+	 lcdPrintf(0, fx.height * 3 - 1, "%s", ascii);
+	 lcdSetFontUnderLine( RED);
+	 lcdPrintf(0, fx.height * 4 - 1, "%s", ascii);
+	 lcdUnsetFontFill();
+	 lcdUnsetFontUnderLine();*/
 
 	endTick = xTaskGetTickCount();
 	diffTick = endTick - startTick;

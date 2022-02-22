@@ -166,7 +166,6 @@ static bool spi_master_write_byte(spi_device_handle_t SPIHandle, const uint8_t *
 #endif
 		assert(ret==ESP_OK);
 	}
-
 	return true;
 }
 
@@ -401,19 +400,19 @@ void lcdInitDisplay()
 #endif
 }
 
-static void SPIFFS_Directory(char *path)
-{
-	DIR *dir = opendir(path);
-	assert(dir != NULL);
-	while (true)
-	{
-		struct dirent *pe = readdir(dir);
-		if (!pe)
-			break;
-		ESP_LOGI(__FUNCTION__, "d_name=%s d_ino=%d d_type=%x", pe->d_name, pe->d_ino, pe->d_type);
-	}
-	closedir(dir);
-}
+/*static void SPIFFS_Directory(char *path)
+ {
+ DIR *dir = opendir(path);
+ assert(dir != NULL);
+ while (true)
+ {
+ struct dirent *pe = readdir(dir);
+ if (!pe)
+ break;
+ ESP_LOGI(__FUNCTION__, "d_name=%s d_ino=%d d_type=%x", pe->d_name, pe->d_ino, pe->d_type);
+ }
+ closedir(dir);
+ }*/
 
 /**
  * Inicializa el FS (si es que se usa) pero si se usan fonts hay que inicializarlo.
@@ -475,7 +474,7 @@ void lcdInitFS(char *root_name, int max_files)
 	}
 
 	//TODO: si falla agregar una / al final
-	SPIFFS_Directory(fs_root_name);
+	//SPIFFS_Directory(fs_root_name);
 }
 
 // Draw pixel
@@ -488,17 +487,12 @@ void lcdDrawPixel(uint16_t x, uint16_t y, uint16_t color)
 		return;
 	if (y >= dev.height)
 		return;
-
-	uint16_t _x = x;	// + dev._offsetx;
-	uint16_t _y = y;	// + dev._offsety;
-
 	spi_master_write_comm_byte(0x2A);	// set column(x) address
-	spi_master_write_addr(_x, _x);
+	spi_master_write_addr(x, x);
 	spi_master_write_comm_byte(0x2B);	// set Page(y) address
-	spi_master_write_addr(_y, _y);
+	spi_master_write_addr(y, y);
 	spi_master_write_comm_byte(0x2C);	// Memory Write
 	spi_master_write_data_word(color);
-
 }
 
 // Add 202001
@@ -513,18 +507,10 @@ void lcdDrawMultiPixels(uint16_t x, uint16_t y, uint16_t size, uint16_t *colors)
 		return;
 	if (y >= dev.height)
 		return;
-
-	//ESP_LOGD(TAG, "offset(x)=%d offset(y)=%d", dev._offsetx, dev._offsety);
-	uint16_t _x1 = x;	//+ dev._offsetx;
-	uint16_t _x2 = _x1 + size;
-	uint16_t _y1 = y;	//+ dev._offsety;
-	uint16_t _y2 = _y1;
-	//ESP_LOGD(TAG, "_x1=%d _x2=%d _y1=%d _y2=%d", _x1, _x2, _y1, _y2);
-
 	spi_master_write_comm_byte(0x2A);	// set column(x) address
-	spi_master_write_addr(_x1, _x2);
+	spi_master_write_addr(x, x + size);
 	spi_master_write_comm_byte(0x2B);	// set Page(y) address
-	spi_master_write_addr(_y1, _y2);
+	spi_master_write_addr(y, y);
 	spi_master_write_comm_byte(0x2C);	// Memory Write
 	spi_master_write_colors(colors, size);
 }
@@ -546,20 +532,14 @@ void lcdDrawFillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_
 	if (y2 >= dev.height)
 		y2 = dev.height - 1;
 
-	//ESP_LOGD(TAG, "offset(x)=%d offset(y)=%d", dev._offsetx, dev._offsety);
-	uint16_t _x1 = x1;	//+ dev._offsetx;
-	uint16_t _x2 = x2;	//+ dev._offsetx;
-	uint16_t _y1 = y1;	//+ dev._offsety;
-	uint16_t _y2 = y2;	//+ dev._offsety;
-
 	spi_master_write_comm_byte(0x2A);	// set column(x) address
-	spi_master_write_addr(_x1, _x2);
+	spi_master_write_addr(x1, x2);
 	spi_master_write_comm_byte(0x2B);	// set Page(y) address
-	spi_master_write_addr(_y1, _y2);
+	spi_master_write_addr(y1, y2);
 	spi_master_write_comm_byte(0x2C);	// Memory Write
-	for (int i = _x1; i <= _x2; i++)
+	for (int i = x1; i <= x2; i++)
 	{
-		uint16_t size = _y2 - _y1 + 1;
+		uint16_t size = y2 - y1 + 1;
 		spi_master_write_color(color, size);
 	}
 }
@@ -831,26 +811,21 @@ void lcdDrawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16
 		temp = x1;
 		x1 = x2;
 		x2 = temp;
-	} // endif
-
+	}
 	if (y1 > y2)
 	{
 		temp = y1;
 		y1 = y2;
 		y2 = temp;
-	} // endif
-
-	//ESP_LOGD(TAG, "x1=%d x2=%d delta=%d r=%d", x1, x2, x2 - x1, r);
-	//ESP_LOGD(TAG, "y1=%d y2=%d delta=%d r=%d", y1, y2, y2 - y1, r);
+	}
 	if (x2 - x1 < r)
-		return; // Add 20190517
+		return;
 	if (y2 - y1 < r)
-		return; // Add 20190517
+		return;
 
 	x = 0;
 	y = -r;
 	err = 2 - 2 * r;
-
 	do
 	{
 		if (x)
@@ -866,10 +841,8 @@ void lcdDrawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16
 			err += ++y * 2 + 1;
 	} while (y < 0);
 
-	//ESP_LOGD(TAG, "x1+r=%d x2-r=%d", x1 + r, x2 - r);
 	lcdDrawLine(x1 + r, y1, x2 - r, y1, color);
 	lcdDrawLine(x1 + r, y2, x2 - r, y2, color);
-	//ESP_LOGD(TAG, "y1+r=%d y2-r=%d", y1 + r, y2 - r);
 	lcdDrawLine(x1, y1 + r, x1, y2 - r, color);
 	lcdDrawLine(x2, y1 + r, x2, y2 - r, color);
 }
@@ -887,7 +860,6 @@ void lcdDrawArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t w
 	double Vx = x1 - x0;
 	double Vy = y1 - y0;
 	double v = sqrt(Vx * Vx + Vy * Vy);
-	//printf("v=%f\n",v);
 	double Ux = Vx / v;
 	double Uy = Vy / v;
 
@@ -896,7 +868,6 @@ void lcdDrawArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t w
 	L[1] = y1 + Ux * w - Uy * v;
 	R[0] = x1 + Uy * w - Ux * v;
 	R[1] = y1 - Ux * w - Uy * v;
-	//printf("L=%d-%d R=%d-%d\n",L[0],L[1],R[0],R[1]);
 
 	//lcdDrawLine(x0,y0,x1,y1,color);
 	lcdDrawLine(x1, y1, L[0], L[1], color);
@@ -916,7 +887,6 @@ void lcdDrawFillArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16
 	double Vx = x1 - x0;
 	double Vy = y1 - y0;
 	double v = sqrt(Vx * Vx + Vy * Vy);
-	//printf("v=%f\n",v);
 	double Ux = Vx / v;
 	double Uy = Vy / v;
 
@@ -925,7 +895,6 @@ void lcdDrawFillArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16
 	L[1] = y1 + Ux * w - Uy * v;
 	R[0] = x1 + Uy * w - Ux * v;
 	R[1] = y1 - Ux * w - Uy * v;
-	//printf("L=%d-%d R=%d-%d\n",L[0],L[1],R[0],R[1]);
 
 	lcdDrawLine(x0, y0, x1, y1, color);
 	lcdDrawLine(x1, y1, L[0], L[1], color);
@@ -939,7 +908,6 @@ void lcdDrawFillArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16
 		L[1] = y1 + Ux * ww - Uy * v;
 		R[0] = x1 + Uy * ww - Ux * v;
 		R[1] = y1 - Ux * ww - Uy * v;
-		//printf("Fill>L=%d-%d R=%d-%d\n",L[0],L[1],R[0],R[1]);
 		lcdDrawLine(x1, y1, L[0], L[1], color);
 		lcdDrawLine(x1, y1, R[0], R[1], color);
 	}
@@ -959,7 +927,6 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 	// debo cargar la font en memoria siempre, por eso llamo a esto.
 	// y tambien cargo la letra en el buffer.
 	GetFontx(dev.font.fx, ascii, &pw, &ph);
-	//ESP_LOGD(TAG, "Font %s %s, w=%d h=%d\n", fx->path, fx->opened ? "open" : "close!", pw, ph);
 
 	int16_t xd1 = 0;
 	int16_t yd1 = 0;
@@ -1048,7 +1015,6 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 		lcdDrawFillRect(x0, y0, x1, y1, dev.font.bg_color);
 
 	int bits;
-	//ESP_LOGD(TAG, "xss=%d yss=%d\n", xss, yss);
 	ofs = 0;
 	yy = yss;
 	xx = xss;
@@ -1068,8 +1034,6 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 				bits--;
 				if (bits < 0)
 					continue;
-
-				//ESP_LOGD(TAG, "xx=%d yy=%d mask=%02x fonts[%d]=%02x\n", xx, yy, mask, ofs, fonts[ofs]);
 
 				if (dev.font.fx->bmpFont[ofs] & mask)
 				{
@@ -1101,12 +1065,8 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 int lcdDrawString(uint16_t x, uint16_t y, char *ascii)
 {
 	int length = strlen(ascii);
-	//ESP_LOGI(TAG, "length=%d ascii=%s, x=%d y=%d", length, ascii, x, y);
-
 	for (int i = 0; i < length; i++)
 	{
-		//ESP_LOGD(TAG, "ascii[%d]=%x x=%d y=%d\n", i, ascii[i], x, y);
-
 		if (dev.font.direction == 0 || dev.font.direction == 2)
 			x = lcdDrawChar(x, y, ascii[i]);
 		else
@@ -1114,10 +1074,7 @@ int lcdDrawString(uint16_t x, uint16_t y, char *ascii)
 	}
 	dev.font.y = y;
 	dev.font.x = x;
-	if (dev.font.direction <= 2)
-		return x;
-	else
-		return y;
+	return dev.font.direction <= 2 ? x : y;
 }
 
 // Draw character using code
@@ -1126,16 +1083,11 @@ int lcdDrawString(uint16_t x, uint16_t y, char *ascii)
 // code: charcter code
 int lcdDrawCode(uint16_t x, uint16_t y, uint8_t code)
 {
-	//ESP_LOGD(TAG, "code=%x x=%d y=%d\n", code, x, y);
 	if (dev.font.direction == 0 || dev.font.direction == 2)
 		x = lcdDrawChar(x, y, code);
 	else
 		y = lcdDrawChar(x, y, code);
-
-	if (dev.font.direction <= 2)
-		return x;
-	else
-		return y;
+	return dev.font.direction <= 2 ? x : y;
 }
 
 // Set font direction
@@ -1177,18 +1129,14 @@ void lcdUnsetFontUnderLine()
 void lcdBacklightOff()
 {
 	if (dev._bl >= 0)
-	{
 		gpio_set_level(dev._bl, 0);
-	}
 }
 
 // Backlight ON
 void lcdBacklightOn()
 {
 	if (dev._bl >= 0)
-	{
 		gpio_set_level(dev._bl, 1);
-	}
 }
 
 // Vertical Scrolling Definition
@@ -1315,12 +1263,11 @@ int lcdPrintf(uint16_t x, uint16_t y, const char *format, ...)
  */
 FontxFile* lcdFontCaps(uint8_t *fontWidth, uint8_t *fontHeight)
 {
-	if (dev.font.fx == NULL)
-	{
-		*fontWidth = *fontHeight = 0;
-		return NULL; // no hay font seleccionada!
-	}
-	return GetFontx(dev.font.fx, 0, fontWidth, fontHeight);
+	if (dev.font.fx != NULL)
+		return GetFontx(dev.font.fx, 0, fontWidth, fontHeight);
+	// no hay font seleccionada!
+	*fontWidth = *fontHeight = 0;
+	return NULL;
 }
 
 void lcdLoadJpg(int x, int y, const char *fileName)
