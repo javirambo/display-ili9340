@@ -3,17 +3,14 @@
 
 [Link a la lib de nopnop2002](https://github.com/nopnop2002/esp-idf-ili9340).
 
-Para poder compilar tuve que usar la consola y *idf.py menuconfig & idf.py flash*
-
-(No funcionó la compilación desde Eclipse ni la grabación.)
-
-* El display hay que configurarlo con menuconfig. 
-* No usa MISO
-* Para que no se inverta la imagen usar ancho 240 y alto 320
+* Modifiqué rotundamente la lib para manejo mas simple y entenderla un poco.
+* AHORA SOLO SIRVE PARA ILI9341
+* El display hay que configurarlo con menuconfig (pines, etc) 
+* No usa MISO a no se que tenga touch.
 
 
 
--- Funciona bien. Falta proban un poco mas.....
+-- Funciona bien. Falta probar un poco mas.....
 
 Javier.
 
