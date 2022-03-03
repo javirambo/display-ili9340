@@ -11,6 +11,11 @@
 #include <stdbool.h>
 #include "driver/spi_master.h"
 #include "fontx.h"
+#include "bmpfile.h"
+#include "decode_jpeg.h"
+#include "decode_png.h"
+#include "ili9341.h"
+#include "pngle.h"
 
 #define BLACK       	0x0000      /*   0,   0,   0 */
 #define NAVY        	0x000F      /*   0,   0, 128 */
@@ -34,7 +39,6 @@
 #define PINK        	0xF81F
 
 #define rgb565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3))
-#define lcdClear(color) lcdFillScreen(color)
 
 typedef enum
 {
@@ -84,16 +88,12 @@ typedef struct
 
 // para inicializar el display:
 void lcdInitDisplay();							// solo para display ILI9341
-void lcdInitFS(char *root_name, int max_files);	// si se van a usar recursos como jpg, fonts, etc
 void lcdInitFonts(int size, ...);				// si se usan fonts
-
+void lcdClearScreen(uint16_t color);
 void lcdDisplayOff();
 void lcdDisplayOn();
 void lcdInversionOff();
 void lcdInversionOn();
-void lcdBGRFilter();
-
-void lcdFillScreen(uint16_t color);	// clear screen
 
 void lcdDrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 void lcdDrawRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
@@ -108,14 +108,14 @@ void lcdDrawPixel(uint16_t x, uint16_t y, uint16_t color);
 void lcdDrawMultiPixels(uint16_t x, uint16_t y, uint16_t size, uint16_t *colors);
 void lcdDrawFillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 
-int lcdDrawChar(uint16_t x, uint16_t y, char ascii);
-int lcdDrawCode(uint16_t x, uint16_t y, uint8_t code);	//unicode?
-int lcdDrawString(uint16_t x, uint16_t y, char *ascii);
-int lcdPrintf(uint16_t x, uint16_t y, const char *format, ...);
+int lcdPrintChar(uint16_t x, uint16_t y, char ascii);
+int lcdPrintAtPos(uint16_t x, uint16_t y, char *texto);
+int lcdPrintf(const char *format, ...); // imprime siempre donde dejo el anterior printf
+void lcdSetCursor(uint16_t x, uint16_t y); // lo usa el lcdPrintf
 
-void lcdSetFont(int fontIndex);
-void lcdSetFontEx(int font_index, FontxFile *fx); // retorna un font_caps
-FontxFile* lcdFontCaps(uint8_t *fontWidth, uint8_t *fontHeight);
+void lcdGetFont(FontxFile *fx);	// retorna el font seleccionado
+void lcdSetFont(int fontIndex); // cambia el font al font index cargado con InitFont
+void lcdSetAndGetFont(int font_index, FontxFile *fx); // retorna un font_caps
 void lcdSetFontColor(uint16_t color);
 void lcdSetFontDirection(uint16_t);
 void lcdSetFontFill(uint16_t color);
@@ -130,6 +130,7 @@ void lcdSetScrollArea(uint16_t tfa, uint16_t vsa, uint16_t bfa);
 void lcdResetScrollArea(uint16_t vsa);
 void lcdScroll(uint16_t vsp);
 
+// carga imagenes desde el FS y las muestra en el display:
 void lcdLoadJpg(int x, int y, const char *fileName);
 void lcdLoadPng(int x, int y, const char *fileName);
 void lcdLoadBmp(int x, int y, const char *fileName);

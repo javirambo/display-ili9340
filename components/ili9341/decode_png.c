@@ -1,3 +1,4 @@
+#include <fsTools.h>
 #include <stdio.h>
 #include "decode_png.h"
 #include "pngle.h"
@@ -66,10 +67,10 @@ void png_finish(pngle_t *pngle)
 	//ESP_LOGD(__FUNCTION__, "png_finish");
 }
 
-int load_png(int _x, int _y, char *file, int scr_width, int scr_height)
+int load_png(int _x, int _y, const char *file, int scr_width, int scr_height)
 {
 	// open PNG file
-	FILE *fp = fopen(file, "rb");
+	FILE *fp = fs_open_file(file, "rb");
 	if (fp == NULL)
 	{
 		ESP_LOGW(__FUNCTION__, "File not found [%s]", file);

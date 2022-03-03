@@ -3,21 +3,12 @@
  */
 #include <string.h>
 #include <math.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
-#include <ili9341.h>
-#include "esp_log.h"
-#include "esp_vfs.h"
-#include "esp_spiffs.h"
-
-#include "fontx.h"
-#include "bmpfile.h"
-#include "decode_jpeg.h"
-#include "decode_png.h"
+#include <esp_log.h>
 #include "ili9341.h"
-#include "pngle.h"
 
 #define TAM_PRINT_BUF 512
 
@@ -25,7 +16,8 @@ static const char *TAG = "ILI9341";
 
 static TFT_t dev;					// handle al display
 static FontxFile *fonts; 			// guarda todas las fonts a usar
-static char *fs_root_name = NULL;	// maneja el FS (si se usan fonts se usa el FS)
+static int fonts_count = 0;			// cantidad de fonts inicializadas
+//static char *fs_root_name = NULL;	// maneja el FS (si se usan fonts se usa el FS)
 
 #ifdef CONFIG_IDF_TARGET_ESP32
 #define LCD_HOST HSPI_HOST
@@ -96,7 +88,10 @@ static void spi_master_init()
 
 	ret = spi_bus_initialize( LCD_HOST, &buscfg, SPI_DMA_CH_AUTO);
 	ESP_LOGD(TAG, "spi_bus_initialize=%d", ret);
-	assert(ret==ESP_OK);
+	if (ESP_ERR_INVALID_STATE == ret)
+		ESP_LOGW(TAG, "El spi_bus posiblemente ya estÃ© inicializado.");
+	else
+		assert(ret==ESP_OK);
 
 	spi_device_interface_config_t tft_devcfg = {
 		.clock_speed_hz = TFT_Frequency,
@@ -365,21 +360,24 @@ static void spi_display_init()
  */
 void lcdInitFonts(int size, ...)
 {
-	if (fs_root_name == NULL)
-	{
-		ESP_LOGE(TAG, "Primero inicializar el FS!");
-	}
-	else
-	{
-		fonts = (FontxFile*) malloc(size * sizeof(FontxFile));
-		int i;
-		va_list ap;
-		va_start(ap, size);
-		for (i = 0; i < size; i++)
-			InitFontx(&fonts[i], fs_root_name, (char*) va_arg(ap, char*));
-		va_end(ap);
-	}
+	fonts_count = size; // solo para chequear el SetFont()
+	fonts = (FontxFile*) malloc(size * sizeof(FontxFile));
+	int i;
+	va_list ap;
+	va_start(ap, size);
+	for (i = 0; i < size; i++)
+		InitFont(&fonts[i], (char*) va_arg(ap, char*));
+	va_end(ap);
 }
+
+// Change Memory Access Control
+#if CONFIG_INVERSION
+static void lcdBGRFilter()
+{
+	spi_master_write_comm_byte(0x36);	//Memory Access Control
+	spi_master_write_data_byte(0x00);	//Right top start, RGB color filter panel
+}
+#endif
 
 /*
  * Inicializa el SPI y el display.
@@ -398,83 +396,6 @@ void lcdInitDisplay()
 	ESP_LOGI(TAG, "Change BGR filter to RGB filter");
 	lcdBGRFilter(&dev);
 #endif
-}
-
-/*static void SPIFFS_Directory(char *path)
- {
- DIR *dir = opendir(path);
- assert(dir != NULL);
- while (true)
- {
- struct dirent *pe = readdir(dir);
- if (!pe)
- break;
- ESP_LOGI(__FUNCTION__, "d_name=%s d_ino=%d d_type=%x", pe->d_name, pe->d_ino, pe->d_type);
- }
- closedir(dir);
- }*/
-
-/**
- * Inicializa el FS (si es que se usa) pero si se usan fonts hay que inicializarlo.
- */
-void lcdInitFS(char *root_name, int max_files)
-{
-	ESP_LOGD(TAG, "Initializing SPIFFS");
-
-	if (*root_name != '/')
-	{
-		// tiene que empezar con /
-		fs_root_name = (char*) malloc(2 + strlen(root_name));
-		strcpy(fs_root_name, "/");
-		strcat(fs_root_name, root_name);
-	}
-	else
-	{
-		fs_root_name = (char*) malloc(1 + strlen(root_name));
-		strcpy(fs_root_name, root_name);
-	}
-
-	esp_vfs_spiffs_conf_t conf = {
-		.base_path = fs_root_name,
-		.partition_label = NULL,
-		.max_files = max_files,
-		.format_if_mount_failed = true
-	};
-
-	// Use settings defined above toinitialize and mount SPIFFS filesystem.
-	// Note: esp_vfs_spiffs_register is anall-in-one convenience function.
-	esp_err_t ret = esp_vfs_spiffs_register(&conf);
-
-	if (ret != ESP_OK)
-	{
-		if (ret == ESP_FAIL)
-		{
-			ESP_LOGE(TAG, "Failed to mount or format filesystem");
-		}
-		else if (ret == ESP_ERR_NOT_FOUND)
-		{
-			ESP_LOGE(TAG, "Failed to find SPIFFS partition");
-		}
-		else
-		{
-			ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
-		}
-		return; // CHAU! ERROR!
-	}
-
-	size_t total = 0, used = 0;
-	ret = esp_spiffs_info(NULL, &total, &used);
-	if (ret != ESP_OK)
-	{
-		ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
-	}
-	else
-	{
-		ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
-	}
-
-	//TODO: si falla agregar una / al final
-	//SPIFFS_Directory(fs_root_name);
 }
 
 // Draw pixel
@@ -568,15 +489,7 @@ void lcdInversionOn()
 	spi_master_write_comm_byte(0x21);
 }
 
-// Change Memory Access Control
-void lcdBGRFilter()
-{
-	spi_master_write_comm_byte(0x36);	//Memory Access Control
-	spi_master_write_data_byte(0x00);	//Right top start, RGB color filter panel
-}
-// Fill screen
-// color:color
-void lcdFillScreen(uint16_t color)
+void lcdClearScreen(uint16_t color)
 {
 	lcdDrawFillRect(0, 0, dev.width - 1, dev.height - 1, color);
 }
@@ -917,7 +830,7 @@ void lcdDrawFillArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16
 // x:X coordinate
 // y:Y coordinate
 // ascii: ascii code
-int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
+int lcdPrintChar(uint16_t x, uint16_t y, char ascii)
 {
 	uint16_t xx, yy, bit, ofs;
 	unsigned char pw, ph;
@@ -926,7 +839,7 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 
 	// debo cargar la font en memoria siempre, por eso llamo a esto.
 	// y tambien cargo la letra en el buffer.
-	GetFontx(dev.font.fx, ascii, &pw, &ph);
+	GetFont(dev.font.fx, ascii, &pw, &ph);
 
 	int16_t xd1 = 0;
 	int16_t yd1 = 0;
@@ -1056,38 +969,36 @@ int lcdDrawChar(uint16_t x, uint16_t y, char ascii)
 		yy = yy + yd1;
 		xx = xx + xd2;
 	}
-
 	if (next < 0)
 		next = 0;
 	return next;
 }
 
-int lcdDrawString(uint16_t x, uint16_t y, char *ascii)
+/*
+ * imprime el texto y retorna en dev.font.x/dev.font.y las siguientes posiciones donde seguir imprimiendo
+ */
+int lcdPrintAtPos(uint16_t x, uint16_t y, char *texto)
 {
-	int length = strlen(ascii);
-	for (int i = 0; i < length; i++)
+	bool horizontal = (dev.font.direction == 0 || dev.font.direction == 2);
+	char *p = texto;
+	while (*p)
 	{
-		if (dev.font.direction == 0 || dev.font.direction == 2)
-			x = lcdDrawChar(x, y, ascii[i]);
+		if (*p == '\n')
+		{
+			y = (horizontal ? y + dev.font.fx->height : 0);
+			x = (horizontal ? 0 : x + dev.font.fx->height);
+		}
 		else
-			y = lcdDrawChar(x, y, ascii[i]);
+		{
+			if (horizontal)
+				x = lcdPrintChar(x, y, *p);
+			else
+				y = lcdPrintChar(x, y, *p);
+		}
+		p++;
 	}
 	dev.font.y = y;
-	dev.font.x = x;
-	return dev.font.direction <= 2 ? x : y;
-}
-
-// Draw character using code
-// x:X coordinate
-// y:Y coordinate
-// code: charcter code
-int lcdDrawCode(uint16_t x, uint16_t y, uint8_t code)
-{
-	if (dev.font.direction == 0 || dev.font.direction == 2)
-		x = lcdDrawChar(x, y, code);
-	else
-		y = lcdDrawChar(x, y, code);
-	return dev.font.direction <= 2 ? x : y;
+	return dev.font.x = x;
 }
 
 // Set font direction
@@ -1222,11 +1133,12 @@ void xptGetxy(int *xp, int *yp)
  */
 void lcdSetFont(int fontIndex)
 {
-	dev.font.fx = &fonts[fontIndex];
+	if (fontIndex < fonts_count) // te olvidaste de poner el tamaï¿½o correcto en InitFonts?
+		dev.font.fx = &fonts[fontIndex];
 }
 
 /*
- * setea la font a usar y retorna un puntero a caracteristicas de la font (tamaño, etc)
+ * setea la font a usar y retorna un puntero a caracteristicas de la font (tamaï¿½o, etc)
  * (ojo que no se setea todo lo de la fx)
  */
 void lcdSetFontEx(int font_index, FontxFile *fx)
@@ -1234,9 +1146,10 @@ void lcdSetFontEx(int font_index, FontxFile *fx)
 	dev.font.fx = &fonts[font_index];
 	if (fx)
 	{
-		GetFontx(dev.font.fx, 0, 0, 0);
+		GetFont(dev.font.fx, 0, 0, 0);
+		//copio algunos datos para retornar...
 		memset(fx, 0, sizeof(FontxFile));
-		fx->path = dev.font.fx->path;
+		fx->name = dev.font.fx->name;
 		fx->width = dev.font.fx->width;
 		fx->height = dev.font.fx->height;
 	}
@@ -1247,46 +1160,42 @@ void lcdSetFontColor(uint16_t color)
 	dev.font.color = color;
 }
 
-int lcdPrintf(uint16_t x, uint16_t y, const char *format, ...)
+/*
+ * Setea la posicion donde imprimirï¿½ lcdPrintf
+ * SIEMPRE HACERLO DESPUES DEL SET-FONT !!
+ */
+void lcdSetCursor(uint16_t x, uint16_t y)
+{
+	dev.font.x = x;
+	// uso el 0,0 de la font en top/left (sino me usa bottom/left)
+	dev.font.y = y + dev.font.fx->height;
+}
+
+/*
+ * Imprime el texto en las posiciones que seteï¿½ lcdSetCursor
+ */
+int lcdPrintf(const char *format, ...)
 {
 	va_list argptr;
 	char buf[TAM_PRINT_BUF];
 	va_start(argptr, format);
 	vsprintf(buf, format, argptr);
-	int i = lcdDrawString(x, y, buf);
+	lcdPrintAtPos(dev.font.x, dev.font.y, buf);
 	va_end(argptr);
-	return i;
-}
-
-/*
- * Ojo, si no se seteo font da null.
- */
-FontxFile* lcdFontCaps(uint8_t *fontWidth, uint8_t *fontHeight)
-{
-	if (dev.font.fx != NULL)
-		return GetFontx(dev.font.fx, 0, fontWidth, fontHeight);
-	// no hay font seleccionada!
-	*fontWidth = *fontHeight = 0;
-	return NULL;
+	return dev.font.x;
 }
 
 void lcdLoadJpg(int x, int y, const char *fileName)
 {
-	char buf[50];
-	sprintf(buf, "%s/%s", fs_root_name, fileName);
-	load_jpg(x, y, buf, CONFIG_WIDTH, CONFIG_HEIGHT);
+	load_jpg(x, y, fileName, CONFIG_WIDTH, CONFIG_HEIGHT);
 }
 
 void lcdLoadPng(int x, int y, const char *fileName)
 {
-	char buf[50];
-	sprintf(buf, "%s/%s", fs_root_name, fileName);
-	load_png(x, y, buf, CONFIG_WIDTH, CONFIG_HEIGHT);
+	load_png(x, y, fileName, CONFIG_WIDTH, CONFIG_HEIGHT);
 }
 
 void lcdLoadBmp(int x, int y, const char *fileName)
 {
-	char buf[50];
-	sprintf(buf, "%s/%s", fs_root_name, fileName);
-	load_bmp(x, y, buf, CONFIG_WIDTH, CONFIG_HEIGHT);
+	load_bmp(x, y, fileName, CONFIG_WIDTH, CONFIG_HEIGHT);
 }

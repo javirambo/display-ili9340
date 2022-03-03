@@ -1,4 +1,4 @@
-menu "TFT ILI9341 Configuration"
+menu "Display ILI9341"
 
 	config WIDTH
 		int "SCREEN WIDTH"

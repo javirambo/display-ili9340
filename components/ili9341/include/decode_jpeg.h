@@ -23,7 +23,7 @@ typedef uint16_t pixel_jpeg;
  *         - ESP_ERR_NO_MEM if out of memory
  *         - ESP_OK on succesful decode
  */
-esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t height, uint16_t *imageWidth, uint16_t *imageHeight);
+esp_err_t decode_jpeg(pixel_jpeg ***pixels, const char *file, uint16_t width, uint16_t height, uint16_t *imageWidth, uint16_t *imageHeight);
 
 /**
  * @brief Release image memory.
@@ -31,4 +31,4 @@ esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t
  */
 esp_err_t release_image(pixel_jpeg ***pixels, uint16_t width, uint16_t height);
 
-int load_jpg(int _x, int _y, char *file, int scr_width, int scr_height);
+int load_jpg(int _x, int _y, const char *file, int scr_width, int scr_height);
