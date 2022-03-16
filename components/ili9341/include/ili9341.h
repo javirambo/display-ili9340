@@ -114,6 +114,7 @@ int lcdPrintf(const char *format, ...); // imprime siempre donde dejo el anterio
 void lcdSetCursor(uint16_t x, uint16_t y); // lo usa el lcdPrintf
 
 void lcdGetFont(FontxFile *fx);	// retorna el font seleccionado
+void lcdSetFontEx(int font_index, FontxFile *fx);
 void lcdSetFont(int fontIndex); // cambia el font al font index cargado con InitFont
 void lcdSetAndGetFont(int font_index, FontxFile *fx); // retorna un font_caps
 void lcdSetFontColor(uint16_t color);

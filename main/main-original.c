@@ -531,7 +531,7 @@ TickType_t ColorTest(TFT_t *dev, int width, int height)
 	return diffTick;
 }
 
-#if CONFIG_ILI9340 || CONFIG_ILI9341 || CONFIG_ST7796
+
 TickType_t ScrollTest(TFT_t *dev, FontxFile *fx, int width, int height)
 {
 	TickType_t startTick, endTick, diffTick;
@@ -602,7 +602,7 @@ void ScrollReset(TFT_t *dev, int width, int height)
 	lcdResetScrollArea(dev, height);
 	lcdScroll(dev, 0);
 }
-#endif
+
 
 #if CONFIG_ILI9225 || CONFIG_ILI9225G
 TickType_t ScrollTest(TFT_t * dev, FontxFile *fx, int width, int height) {

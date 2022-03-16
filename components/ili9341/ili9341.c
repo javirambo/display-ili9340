@@ -1050,6 +1050,23 @@ void lcdBacklightOn()
 		gpio_set_level(dev._bl, 1);
 }
 
+
+/*
+ * file:///C:/Users/Javier/Documents/HW/ILI9341.pdf
+ * 8.2.26. Vertical Scrolling Definition (33h)
+ * [command]+[6 parametros (bytes)]
+ *
+ * The 1st & 2nd parameter TFA [15...0] describes the Top Fixed Area
+ *  (in No. of lines from Top of the Frame Memory and Display).
+ * The 3rd & 4th parameter VSA [15...0] describes the height of the
+ *  Vertical Scrolling Area (in No. of lines of the Frame Memory [not the display]
+ *  from the Vertical Scrolling Start Address). The first line read from
+ *  Frame Memory appears immediately after the bottom most line of the Top Fixed Area.
+ * The 5th & 6th parameter BFA [15...0] describes the Bottom Fixed Area
+ *  (in No. of lines from Bottom of the Frame Memory and Display).
+ *  TFA, VSA and BFA refer to the Frame Memory Line Pointer.
+ */
+
 // Vertical Scrolling Definition
 // tfa:Top Fixed Area (normalmente fontHeight)
 // vsa:Vertical Scrolling Area (normalmente height - fontHeight)
@@ -1074,6 +1091,7 @@ void lcdResetScrollArea(uint16_t vsa)
 
 // Vertical Scrolling Start Address
 // vsp:Vertical Scrolling Start Address
+//	(-> desde cual pixel va para arriba la pantalla. Va a subir hasta el pixel 0)
 void lcdScroll(uint16_t vsp)
 {
 	spi_master_write_comm_byte(0x37);	// Vertical Scrolling Start Address
