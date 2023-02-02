@@ -53,6 +53,6 @@ typedef struct
 	bmp_dib_v3_header_t dib;
 } bmpfile_t;
 
-int load_bmp(int _x, int _y, char *file, int scr_width, int scr_height);
+int load_bmp(int _x, int _y, const char *file, int scr_width, int scr_height);
 
 #endif /* __bmpfile_h__ */

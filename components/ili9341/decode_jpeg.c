@@ -1,3 +1,4 @@
+#include <fsTools.h>
 #include <stdio.h>
 #include "decode_jpeg.h"
 #include "esp32/rom/tjpgd.h"
@@ -91,7 +92,7 @@ uint8_t getScale(uint16_t screenWidth, uint16_t screenHeight, uint16_t imageWidt
 #define WORKSZ 3100
 
 //Decode the embedded image into pixel lines that can be used with the rest of the logic.
-esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t height, uint16_t *imageWidth, uint16_t *imageHeight)
+esp_err_t decode_jpeg(pixel_jpeg ***pixels, const char *file, uint16_t width, uint16_t height, uint16_t *imageWidth, uint16_t *imageHeight)
 {
 	char *work = NULL;
 	int r;
@@ -132,7 +133,7 @@ esp_err_t decode_jpeg(pixel_jpeg ***pixels, char *file, uint16_t width, uint16_t
 	jd.outData = *pixels;
 	jd.screenWidth = width;
 	jd.screenHeight = height;
-	jd.fp = fopen(file, "rb");
+	jd.fp = fs_open_file(file, "rb");
 	if (jd.fp == NULL)
 	{
 		ESP_LOGW(__FUNCTION__, "Image file not found [%s]", file);
@@ -209,7 +210,7 @@ esp_err_t release_image(pixel_jpeg ***pixels, uint16_t width, uint16_t height)
 	return ESP_OK;
 }
 
-int load_jpg(int _x, int _y, char *file, int scr_width, int scr_height)
+int load_jpg(int _x, int _y, const char *file, int scr_width, int scr_height)
 {
 	pixel_jpeg **pixels;
 	uint16_t imageWidth;
@@ -217,7 +218,7 @@ int load_jpg(int _x, int _y, char *file, int scr_width, int scr_height)
 	esp_err_t err = decode_jpeg(&pixels, file, scr_width, scr_height, &imageWidth, &imageHeight);
 	if (err == ESP_OK)
 	{
-		ESP_LOGI(__FUNCTION__, "imageWidth=%d imageHeight=%d", imageWidth, imageHeight);
+		//ESP_LOGI(__FUNCTION__, "imageWidth=%d imageHeight=%d", imageWidth, imageHeight);
 
 		uint16_t jpegWidth = scr_width;
 		uint16_t offsetX = _x < 0 ? 0 : _x;

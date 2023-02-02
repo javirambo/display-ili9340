@@ -1,48 +1,35 @@
+#include <fsTools.h>
 #include "esp_err.h"
 #include "esp_log.h"
-
 #include "fontx.h"
 
-//static const char *TAG = "fontx";
-
-void InitFontx(FontxFile *fx, char *root, char *fontName)
+void InitFont(FontxFile *fx, char *fontName)
 {
 	memset(fx, 0, sizeof(FontxFile));
-	fx->path = (char*) malloc(strlen(root) + strlen(fontName) + 2);
-	strcpy(fx->path, root);
-	strcat(fx->path, "/");
-	strcat(fx->path, fontName);
-	fx->opened = false;
-	fx->bmpFont = NULL; // se inicializa con GetFontx
+	fx->name = (char*) strdup(fontName);
+	fx->bmpFont = NULL;
+	// dejo abiertos los FILE* de las fonts (ojo con el max-open-files de la configuracion del fs_tools)
+	FILE *f = fs_open_file(fontName,"r");
+	char buf[18];
+	fread(buf, 1, sizeof(buf), f);
+	fx->width = buf[14];
+	fx->height = buf[15];
+	fx->fsz = (fx->width + 7) / 8 * fx->height;
+	fx->file = f;
 }
 
-bool OpenFontx(FontxFile *fx)
+void GetFont(FontxFile *fx, char ascii, uint8_t *pw, uint8_t *ph)
 {
-	if (fx->opened)
-		return true;
-	FILE *f = fopen(fx->path, "r");
-	if (f)
-	{
-		char buf[18];
-		fread(buf, 1, sizeof(buf), f);
-		fx->width = buf[14];
-		fx->height = buf[15];
-		fx->fsz = (fx->width + 7) / 8 * fx->height;
-		fx->opened = true;
-		fx->file = f;
-		return (fx->fsz <= FontxGlyphBufSize);
-	}
-	return false;
-}
+	if (fx->bmpFont == NULL)
+		fx->bmpFont = (uint8_t*) malloc(fx->fsz);
 
-void CloseFontx(FontxFile *fx)
-{
-	if (fx->opened)
-	{
-		fclose(fx->file);
-		fx->opened = false;
-		free(fx->path); // chau buffer del nombre de la font.
-	}
+	uint32_t offset = 17 + (((uint8_t) ascii) * fx->fsz);
+	fseek(fx->file, offset, SEEK_SET);
+	fread(fx->bmpFont, 1, fx->fsz, fx->file);
+	if (pw)
+		*pw = fx->width;
+	if (ph)
+		*ph = fx->height;
 }
 
 /**
@@ -132,24 +119,6 @@ void CloseFontx(FontxFile *fx)
  31 pGlyph[120] pGlyph[121] pGlyph[122] pGlyph[123]
  32 pGlyph[124] pGlyph[125] pGlyph[127] pGlyph[128]
  */
-
-FontxFile* GetFontx(FontxFile *fx, char ascii, uint8_t *pw, uint8_t *ph)
-{
-	if (OpenFontx(fx))
-	{
-		if (fx->bmpFont == NULL)
-			fx->bmpFont = (uint8_t*) malloc(fx->fsz);
-
-		uint32_t offset = 17 + (((uint8_t) ascii) * fx->fsz);
-		fseek(fx->file, offset, SEEK_SET);
-		fread(fx->bmpFont, 1, fx->fsz, fx->file);
-		if (pw)
-			*pw = fx->width;
-		if (ph)
-			*ph = fx->height;
-	}
-	return fx;
-}
 
 /*
  Convierta patrones de fuente en imágenes de mapa de bits
@@ -281,6 +250,21 @@ FontxFile* GetFontx(FontxFile *fx, char ascii, uint8_t *pw, uint8_t *ph)
  32 line[096] line[097] line[098] .... line[126] line[127]
  */
 
+#if 0
+
+// invertir datos
+static uint8_t RotateByte(uint8_t ch1)
+{
+	uint8_t ch2 = 0;
+	int j;
+	for (j = 0; j < 8; j++)
+	{
+		ch2 = (ch2 << 1) + (ch1 & 0x01);
+		ch1 = ch1 >> 1;
+	}
+	return ch2;
+}
+
 void Font2Bitmap(uint8_t *fonts, uint8_t *line, uint8_t w, uint8_t h, uint8_t inverse)
 {
 	int x, y;
@@ -321,7 +305,9 @@ void Font2Bitmap(uint8_t *fonts, uint8_t *line, uint8_t w, uint8_t h, uint8_t in
 		}
 	}
 }
+#endif
 
+#if 0
 // Agrega subrayado
 void UnderlineBitmap(uint8_t *line, uint8_t w, uint8_t h)
 {
@@ -339,7 +325,7 @@ void UnderlineBitmap(uint8_t *line, uint8_t w, uint8_t h)
 }
 
 // Invierte mapa de bits
-void ReversBitmap(uint8_t *line, uint8_t w, uint8_t h)
+void ReverseBitmap(uint8_t *line, uint8_t w, uint8_t h)
 {
 	int x, y;
 	uint8_t wk;
@@ -352,7 +338,9 @@ void ReversBitmap(uint8_t *line, uint8_t w, uint8_t h)
 		}
 	}
 }
+#endif
 
+#if 0
 // Mostrar patrones de fuente
 void ShowFont(uint8_t *fonts, uint8_t pw, uint8_t ph)
 {
@@ -378,7 +366,9 @@ void ShowFont(uint8_t *fonts, uint8_t pw, uint8_t ph)
 	}
 	printf("\n");
 }
+#endif
 
+#if 0
 void ShowBitmap(uint8_t *bitmap, uint8_t pw, uint8_t ph)
 {
 	int x, y, fpos;
@@ -415,17 +405,5 @@ void ShowBitmap(uint8_t *bitmap, uint8_t pw, uint8_t ph)
 	}
 	printf("\n");
 }
-
-// invertir datos
-uint8_t RotateByte(uint8_t ch1)
-{
-	uint8_t ch2 = 0;
-	int j;
-	for (j = 0; j < 8; j++)
-	{
-		ch2 = (ch2 << 1) + (ch1 & 0x01);
-		ch1 = ch1 >> 1;
-	}
-	return ch2;
-}
+#endif
 

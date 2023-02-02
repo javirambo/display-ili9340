@@ -5,16 +5,17 @@
  *      Author: Javier
  */
 
+#include <fsTools.h>
 #include "esp_log.h"
 #include "bmpfile.h"
 
 #define BUFFPIXEL 20
 
-int load_bmp(int _x, int _y, char *file, int scr_width, int scr_height)
+int load_bmp(int _x, int _y, const char *file, int scr_width, int scr_height)
 {
 	// open BMP file
 	esp_err_t ret;
-	FILE *fp = fopen(file, "rb");
+	FILE *fp = fs_open_file(file, "rb");
 	if (fp == NULL)
 	{
 		ESP_LOGW(__FUNCTION__, "File not found [%s]", file);
