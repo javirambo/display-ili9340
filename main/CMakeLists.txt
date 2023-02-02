@@ -2,7 +2,8 @@
 set(COMPONENT_REQUIRES )
 set(COMPONENT_PRIV_REQUIRES )
 
-set(COMPONENT_SRCS "main-otro-test.c")
+set(COMPONENT_SRCS "main.c")
 set(COMPONENT_ADD_INCLUDEDIRS "")
 
-register_component()
+#no hace falta
+register_component(ili9341)

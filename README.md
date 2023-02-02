@@ -3,10 +3,10 @@
 
 [Link a la lib de nopnop2002](https://github.com/nopnop2002/esp-idf-ili9340).
 
-* Modifiqué rotundamente la lib para manejo mas simple y entenderla un poco.
+* Modifique rotundamente la lib para manejo mas simple y entenderla un poco.
 * AHORA SOLO SIRVE PARA ILI9341
 * El display hay que configurarlo con menuconfig (pines, etc) 
-* No usa MISO a no se que tenga touch.
+* No usa MISO a no ser que tenga touch.
 
 
 
